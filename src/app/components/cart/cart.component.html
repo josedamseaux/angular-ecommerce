@@ -1,0 +1,15 @@
+<div class="container">
+    <div *ngFor="let product of productsInCart; let i = index">
+      <div class="card" style="width: 18rem;">
+        <img [src]="product.imges" style="width: 300px; height: 350px;" alt="Product Image">
+        <!-- <button href="#" class="btn btn-danger" (click)="productDetails(i)">ELIMINAR</button> -->
+        <button href="#" class="btn btn-danger" (click)="deleteFromCart(product)">ELIMINAR</button>
+  
+        <div class="card-body">
+          <h5 class="card-title">Card title</h5>
+          <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's
+            content.</p>
+        </div>
+      </div>
+    </div>
+  </div>

@@ -1,0 +1,27 @@
+<p>ADMIN PANEL works!</p>
+
+<!-- <button (click)="getData()">Click me!</button> -->
+
+<br>
+
+ADD PRODUCT
+<form #productForm="ngForm" (submit)="onSubmit(productForm)">
+  <input type="text" name="productName" [(ngModel)]="product.productName" required>
+  <input type="text" name="description" [(ngModel)]="product.description" required>
+  <input type="number" name="totalAmount" [(ngModel)]="product.totalAmount" required>
+  <input type="number" name="quantity" [(ngModel)]="product.quantity" required>
+  <input type="file" (change)="onFileSelected($event)" accept="image/*" required>
+  <button type="submit">Enviar</button>
+</form>
+
+<div *ngFor="let img of response; let i = index">
+  <div class="card" style="width: 18rem;">
+    <img [src]="img.imges[0]" style="width: 300px; height: 350px;" alt="Product Image">
+    <button href="#" class="btn btn-danger" (click)="deleteItem(img)">ELIMINAR</button>
+    <div class="card-body">
+      <h5 class="card-title">Card title</h5>
+      <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's
+        content.</p>
+    </div>
+  </div>
+</div>
