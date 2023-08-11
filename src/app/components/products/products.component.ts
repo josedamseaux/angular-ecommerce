@@ -45,7 +45,8 @@ export class ProductsComponent {
 
   addToCart(product: any){
     console.log(product)
-    this.cartService.addToCart(product)
+    // this.cartService.addToCart(product)
+    this.cartService.addToCart2(product)
   }
 
 

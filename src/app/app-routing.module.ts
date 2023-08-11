@@ -16,7 +16,16 @@ const routes: Routes = [
   {path:'cart', component: CartComponent},
   {path:'admin-panel', component: AdminPanelComponent, canActivate:[isAdminGuard]},
   {path:'login', component: LoginComponent},
-  {path:'register', component: RegisterComponent}
+  {path:'register', component: RegisterComponent},
+  {
+    path: '',
+    redirectTo: 'home', 
+    pathMatch: 'full',
+  },  
+  {
+    path: '**',
+    redirectTo: 'home', 
+  },
 ];
 
 @NgModule({
