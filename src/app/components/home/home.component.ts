@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { CartService } from 'src/app/services/cart.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-home',
@@ -10,21 +11,14 @@ import { CartService } from 'src/app/services/cart.service';
 })
 export class HomeComponent implements OnInit {
  
-  constructor(private apiService: ApiService, private authService: AuthService, private cartService: CartService){}
+  constructor(private router: Router, private apiService: ApiService, private authService: AuthService, private cartService: CartService){}
   
   shoppingCartCount: number = 0;
 
   
   ngOnInit() {
-    this.getItems();
   }
   
-  getItems() {
-    this.cartService.shoppingCart$.subscribe(resp => {
-      this.shoppingCartCount = resp.itemsInShoppingCart.length
-    });
-  }
-
   getMethodFromApiService(){
     this.apiService.getMethod('auth/refresh').subscribe(resp=>{
       console.log(resp)
@@ -35,6 +29,10 @@ export class HomeComponent implements OnInit {
     this.authService.logout().subscribe(resp=>{
       console.log(resp)
     })
+  }
+
+  login(){
+    this.router.navigateByUrl('/login')
   }
 
 }

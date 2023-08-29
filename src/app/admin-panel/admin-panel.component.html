@@ -87,6 +87,8 @@
               Total: {{ purchase.total }}<br> 
               Date:{{ purchase.createdAt }} <br> 
               Products: {{ purchase.products }}
+
+              <button (click)="deletePurchase(purchase.id)">Deletepurchase</button>
             </div>
           </ng-template>
         </div>

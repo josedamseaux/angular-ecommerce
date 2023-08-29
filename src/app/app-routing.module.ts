@@ -8,12 +8,14 @@ import { RegisterComponent } from './components/register/register.component';
 import { isAdminGuard } from './guards/isadmin.guard';
 import { ErrorpageComponent } from './components/errorpage/errorpage.component';
 import { CartComponent } from './components/cart/cart.component';
+import { PaymentSuccessComponent } from './components/payment-success/payment-success.component';
 
 const routes: Routes = [
   {path:'home', component: HomeComponent},
   {path:'products', component: ProductsComponent},
   {path:'not-found', component: ErrorpageComponent},
   {path:'cart', component: CartComponent},
+  {path:'payment', component: PaymentSuccessComponent},
   {path:'admin-panel', component: AdminPanelComponent, canActivate:[isAdminGuard]},
   {path:'login', component: LoginComponent},
   {path:'register', component: RegisterComponent},

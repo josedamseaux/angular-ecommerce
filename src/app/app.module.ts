@@ -15,6 +15,7 @@ import { DetailsComponent } from './components/details/details.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { FooterComponent } from './components/footer/footer.component';
 import { ErrorpageComponent } from './components/errorpage/errorpage.component';
+import { PaymentSuccessComponent } from './components/payment-success/payment-success.component';
 
 @NgModule({
   declarations: [
@@ -28,7 +29,8 @@ import { ErrorpageComponent } from './components/errorpage/errorpage.component';
     DetailsComponent,
     NavbarComponent,
     FooterComponent,
-    ErrorpageComponent
+    ErrorpageComponent,
+    PaymentSuccessComponent
   ],
   imports: [
     BrowserModule,

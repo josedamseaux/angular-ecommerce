@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { ProductService } from '../services/product.service';
 import { ProductInterface } from '../interfaces/product.interface';
-import { Subscription } from 'rxjs';
+import { Subscription, of } from 'rxjs';
 import { UsersService } from '../services/users.service';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-admin-panel',
@@ -24,7 +26,9 @@ export class AdminPanelComponent implements OnInit {
     totalAmount: 0,
     quantity: 0
   };
+
   response: any;
+
   imgs: any[] = [];
 
   selectedFile: File | null = null;
@@ -39,11 +43,29 @@ export class AdminPanelComponent implements OnInit {
     console.log(this.searchValue);
   };
 
-  constructor(private productService: ProductService, private usersService: UsersService) {
+  constructor(private authService: AuthService, private productService: ProductService, private usersService: UsersService, private http: HttpClient) {
     this.getData();
     this.productAddedSubscription = this.productService.onProductChange().subscribe(() => {
       this.getData();
     });
+  }
+
+  deletePurchase(id: string) {
+    console.log(id)
+
+    const refreshToken = this.authService.getRefreshToken();
+    if (refreshToken) {
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${refreshToken}`
+      });
+      return this.http.delete<any>(`http://localhost:8000/api/purchases/delete-purchase-by-id/${id}`,
+        { headers }).subscribe(data => {
+          console.log(data)
+          // this.getIdsFromItemsFromShoppingCart()
+        })
+    }
+
+    return of()
   }
 
   onKey(event: any) {
@@ -97,7 +119,7 @@ export class AdminPanelComponent implements OnInit {
   async findUserAndPurchases() {
     console.log(this.searchValue)
 
-    if(this.searchValue === ''){
+    if (this.searchValue === '') {
       this.userFound = []
     }
     const data: any = await this.usersService.findUserAndPurchases(this.searchValue).toPromise()
@@ -105,7 +127,7 @@ export class AdminPanelComponent implements OnInit {
     console.log(data);
   }
 
-  async clickOnUser(i: any){
+  async clickOnUser(i: any) {
     const data: any = await this.usersService.findUserAndPurchases(i.username).toPromise()
     this.userFound = data
   }

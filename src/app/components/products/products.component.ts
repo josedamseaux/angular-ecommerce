@@ -1,7 +1,5 @@
 import { Component } from '@angular/core';
 import { ProductService } from '../../services/product.service';
-import { ProductInterface } from '../../interfaces/product.interface';
-import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { CartService } from 'src/app/services/cart.service';
 
@@ -15,14 +13,8 @@ export class ProductsComponent {
   products: any;
   imgs: any[] = [];
 
-  private productAddedSubscription: Subscription;
-
   constructor(private productService: ProductService, private router: Router, private cartService: CartService) {
     this.getData();
-    // Suscribirse a la notificación de productos agregados o eliminados
-    this.productAddedSubscription = this.productService.onProductChange().subscribe(() => {
-      this.getData();
-    });
   }
 
   getData() {
@@ -34,7 +26,6 @@ export class ProductsComponent {
         const base64Image = this.productService.arrayBufferToBase64(element.imageData.data);
         element.imges = ['data:' + element.imageData.type + ';base64,' + base64Image];
         delete element.imageData; // Eliminar la propiedad imageData
-
       });
     });
   }
@@ -44,14 +35,8 @@ export class ProductsComponent {
   }
 
   addToCart(product: any){
-    console.log(product)
-    // this.cartService.addToCart(product)
-    this.cartService.addToCart2(product)
+    this.cartService.addToCart(product.id)
   }
 
-
-  ngOnDestroy() {
-    this.productAddedSubscription.unsubscribe();
-  }
 
 }

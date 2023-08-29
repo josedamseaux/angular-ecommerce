@@ -1,15 +1,49 @@
 <div class="container">
-    <div *ngFor="let product of productsInCart; let i = index">
-      <div class="card" style="width: 18rem;">
-        <img [src]="product.imges" style="width: 300px; height: 350px;" alt="Product Image">
-        <!-- <button href="#" class="btn btn-danger" (click)="productDetails(i)">ELIMINAR</button> -->
-        <button href="#" class="btn btn-danger" (click)="deleteFromCart(product)">ELIMINAR</button>
-  
-        <div class="card-body">
-          <h5 class="card-title">Card title</h5>
-          <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's
-            content.</p>
+
+  <p> {{messageForPayment}}</p>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div *ngFor="let product of productsInCart; let i = index">
+        <div class="card" style="width: 18rem;">
+          <img [src]="product.imgUrl" style="width: 300px; height: 350px;" alt="Product Image">
+          <button href="#" class="btn btn-danger" (click)="deleteFromCart(product)">ELIMINAR</button>
+
+          <div class="card-body">
+            <h5 class="card-title">{{ product.name }}</h5>
+            <p class="card-text">{{ product.description }}</p>
+          </div>
         </div>
       </div>
     </div>
+
+    <div class="col-md-6">
+      <div style="border: 1px solid #ddd; padding: 20px; border-radius: 8px; background-color: #f9f9f9;">
+        <h2 style="margin-bottom: 10px;">Resumen de Compra</h2>
+        <p>Total de Compra: $100.00</p>
+
+        <form>
+          <label for="direccion">Dirección de Envío:</label>
+          <input type="text" id="direccion" name="direccion" [(ngModel)]="shippingInfo.direccion"
+            style="width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px;">
+
+          <label for="ciudad">Ciudad:</label>
+          <input type="text" id="ciudad" name="ciudad" [(ngModel)]="shippingInfo.ciudad"
+            style="width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px;">
+
+          <label for="codigoPostal">Código Postal:</label>
+          <input type="text" id="codigoPostal" name="codigoPostal" [(ngModel)]="shippingInfo.codigoPostal"
+            style="width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px;">
+
+          <label for="codigoPostal">Aditional information:</label>
+          <input type="text" id="additionalInfo" name="additionalInfo" [(ngModel)]="additionalInfo.additionalInfo"
+            style="width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px;">
+
+          <div class="payment-section">
+            <button class="btn btn-primary" (click)="payWithStripe()">PAGAR</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
+</div>

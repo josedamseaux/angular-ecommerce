@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { CartService } from 'src/app/services/cart.service';
@@ -10,29 +11,48 @@ import { CartService } from 'src/app/services/cart.service';
 })
 export class NavbarComponent {
 
-  constructor(private apiService: ApiService, private authService: AuthService, private cartService: CartService){}
-  
+  constructor(private cartService: CartService, private authService: AuthService) {}
+  private usernameSubscription: Subscription | undefined;
+
+  user: string | null = '';
   shoppingCartCount: number = 0;
   shoppingCartTotal: number = 0;
 
   ngOnInit() {
     this.getItems();
+    this.getUsername()
   }
-  
+
+  getUsername() {
+    if (this.user == ''){
+      this.user = 'visitante'
+    }
+
+    const storedUsername = localStorage.getItem('username');
+
+    if (storedUsername) {
+      this.user = storedUsername;
+    } else {
+      this.usernameSubscription = this.authService.username$.subscribe(data => {
+        this.user = data;
+        localStorage.setItem('username', data); // Almacenar en localStorage
+      });
+    }
+  }
+
   getItems() {
-    this.cartService.shoppingCart$.subscribe(resp => {
-      this.shoppingCartCount = resp.itemsInShoppingCart.length
-    });
-
-    this.cartService.shoppingCartAmount$.subscribe(data=>{
-      console.log(data)
-      this.shoppingCartTotal = data
+    this.cartService.shoppingCart$.subscribe(data => {
+      this.shoppingCartCount = data.shoppingCart_items.length
     })
-
-    this.cartService.getItemsFromShoppingCart()?.subscribe(data=>{
-      this.shoppingCartCount = data.length
-      console.log(data)
+    this.cartService.shoppingCartAmount$.subscribe(resp => {
+      console.log(resp)
+      this.shoppingCartTotal = resp
     })
   }
 
+  ngOnDestroy() {
+    if (this.usernameSubscription) {
+      this.usernameSubscription.unsubscribe();
+    }
+  }
 }

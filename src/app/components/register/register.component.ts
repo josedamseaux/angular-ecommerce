@@ -37,6 +37,7 @@ export class RegisterComponent {
 
     this.authService.register(this.user).subscribe((data) => {
       console.log(data);
+      const user = data.username
       const accessToken = data.accessToken;
       const refreshToken = data.refreshToken;
       this.authService.saveTokens(accessToken, refreshToken);

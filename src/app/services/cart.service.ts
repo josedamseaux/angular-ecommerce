@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, tap } from 'rxjs';
+import { Injectable, OnInit } from '@angular/core';
+import { BehaviorSubject, EMPTY, Observable, forkJoin, of, switchMap } from 'rxjs';
 import { AuthService } from './auth.service';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
@@ -8,91 +8,135 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 })
 export class CartService {
 
+  private apiUrlForShoppingCart = 'http://localhost:8000/api/purchases/shoppingcart'
 
-  private apiUrl = 'http://localhost:8000/api/purchases/shoppingcart'
-
+  private apiUrlForProducts = 'http://localhost:8000/api/products/get-product/'
 
   constructor(private http: HttpClient, private authService: AuthService) {
-    const savedCart = JSON.parse(localStorage.getItem('shoppingCart') ?? '[]');
-    if (savedCart && savedCart.length > 0) {
-      this.currentItems = savedCart;
-      this.shoppingCart.next({ itemsInShoppingCart: this.currentItems });
-    }
+    this.getIdsFromItemsFromShoppingCart()
   }
 
-  private shoppingCart: BehaviorSubject<ShoppingCart> = new BehaviorSubject<ShoppingCart>({ itemsInShoppingCart: [] });
-  shoppingCart$ = this.shoppingCart.asObservable()
-  currentItems: any = [];
+  private shoppingCart: BehaviorSubject<ShoppingCart> = new BehaviorSubject<ShoppingCart>({
+    shoppingCart_id: '',
+    shoppingCart_created_at: '',
+    shoppingCart_updated_at: '',
+    shoppingCart_items: [],
+    shoppingCart_user_id: ''
+  });
 
-  private shoppingCartAmount: BehaviorSubject<any> = new BehaviorSubject<any>(0);
+  shoppingCart$ = this.shoppingCart.asObservable()
+
+  shoppingCartAmount: BehaviorSubject<any> = new BehaviorSubject<any>(0);
+
   shoppingCartAmount$ = this.shoppingCartAmount.asObservable()
+
   currentAmount: number = 0
 
-  getItemsFromShoppingCart() {
+  getHeadersAndToken() {
     const refreshToken = this.authService.getRefreshToken();
     if (refreshToken) {
       const headers = new HttpHeaders({
         'Authorization': `Bearer ${refreshToken}`
       });
-      return this.http.get<any>(`${this.apiUrl}/get-items-from-cart`, { headers })
+      return headers
     }
     return null
   }
 
-  addToCart2(item: any) {
-    const refreshToken = this.authService.getRefreshToken();
-    if (refreshToken) {
-      const headers = new HttpHeaders({
-        'Authorization': `Bearer ${refreshToken}`
-      });
-
-      let id: any = []
-      id.push(item.id)
-
-      console.log(id)
-      return this.http.post<any>(`${this.apiUrl}/add`, { items: id }, { headers }).subscribe(data => {
-        console.log(data)
+  getIdsFromItemsFromShoppingCart(): Observable<ShoppingCart> {
+    let headers = this.getHeadersAndToken()
+    if (headers) {
+      const itemsFromCart = this.http.get<ShoppingCart>(`${this.apiUrlForShoppingCart}/get-items-from-cart`, { headers })
+      itemsFromCart.subscribe((data: ShoppingCart) => {
+        this.shoppingCart.next(data);
+        this.getAmountOfItemsOnCart()
       })
     }
+    return EMPTY
+  }
 
+  getItemsOnCart(): Observable<any[]> {
+    return this.shoppingCart$.pipe(
+      switchMap(data => {
+        if (data == null) { return of([]) }
+        let items = data.shoppingCart_items;
+        const observables: Observable<any>[] = items.map(itemId => {
+          const url = `${this.apiUrlForProducts}${itemId}`;
+          return this.http.get(url);
+        });
+        return forkJoin(observables);
+      })
+    );
+  }
+
+  addToCart(itemId: string) {
+    let headers = this.getHeadersAndToken()
+    if (headers) {
+      return this.http.post<any>(`${this.apiUrlForShoppingCart}/add`, { items: itemId }, { headers }).subscribe(data => {
+        console.log(data)
+        this.getIdsFromItemsFromShoppingCart()
+      })
+    }
     return null
   }
 
-  saveCartInLocal() {
-    localStorage.setItem('shoppingCart', JSON.stringify(this.currentItems));
-    console.log(this.currentItems)
-    const cart = { itemsInShoppingCart: this.currentItems };
-
-    this.shoppingCart.next(cart);
+  getAmountOfItemsOnCart() {
+    this.getItemsOnCart().subscribe((data: any[]) => {
+      if (data === null) {
+        this.shoppingCartAmount.next(0);
+      }
+      const sum = data.reduce((total, item) => total + item.totalAmount, 0);
+      this.shoppingCartAmount.next(sum);
+    });
   }
 
-  deleteFromCart(product: any) {
-    this.currentItems = this.currentItems.filter((item: any) => item !== product);
-    this.saveCartInLocal()
-    this.amountInShoppingCart();
+  deleteItemInCart(id: string) {
+    let headers = this.getHeadersAndToken()
+    if (headers) {
+      return this.http.put(`${this.apiUrlForShoppingCart}/delete/${id}`, { id }, { headers }).subscribe(resp => {
+        console.log(resp)
+        this.getIdsFromItemsFromShoppingCart()
+      });
+    }
+    return EMPTY;
   }
 
-  amountInShoppingCart() {
-    this.currentAmount = 0;
-    this.currentItems.forEach((resp: any) => {
-      let numbers = Number(resp.totalAmount)
-      console.log(numbers)
-      this.currentAmount += numbers;
-      this.shoppingCartAmount.next(this.currentAmount)
+  clearShoppingCart() {
+    this.shoppingCart$.subscribe(resp => {
+      resp.shoppingCart_items.forEach(id => {
+        this.deleteItemInCart(id)
+        this.shoppingCartAmount.next(0);
+      })
     })
   }
 
-}
+  purchaseSuccessful() {
+    localStorage.removeItem('sessionId');
+    localStorage.removeItem('sessionId');
+    this.clearShoppingCart()
+  }
 
-interface Item {
-  id: string;
-  productName: string;
-  imges: string;
-  description: string;
-  totalAmount: string;
-  quantity: number;
+  ngOnDestroy() {
+    this.shoppingCart.unsubscribe()
+    this.shoppingCartAmount.unsubscribe()
+  }
+
 }
 
 interface ShoppingCart {
-  itemsInShoppingCart: Item[];
+  shoppingCart_id: string;
+  shoppingCart_created_at: string;
+  shoppingCart_updated_at: string;
+  shoppingCart_items: string[];
+  shoppingCart_user_id: string;
+}
+
+export class ShippingInfo {
+  direccion!: string;
+  ciudad!: string;
+  codigoPostal!: string;
+}
+
+export class AdditionalInfo {
+  additionalInfo!: string;
 }
